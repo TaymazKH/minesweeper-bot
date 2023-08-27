@@ -1,0 +1,14 @@
+# Environments
+venv/
+.idea/
+.vscode/
+.env
+
+# Byte-compiled
+__pycache__/
+
+# Pipenv
+Pipfile.lock
+
+# Git
+*.orig
