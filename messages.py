@@ -7,5 +7,6 @@ INVALID_INLINE_ARGS = ''
 
 # game
 LETS_PLAY = ''
+GAME = ''
 
 # chat

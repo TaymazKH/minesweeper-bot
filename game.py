@@ -25,7 +25,7 @@ def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], 
     return table, visit
 
 
-def move(table: list[list[int]], visit: list[list[int]], x: int, y: int, turn: int):
+def move(table: list[list[int]], visit: list[list[int]], x: int, y: int, turn: int) -> tuple[bool, int]:
     height = len(table)
     width = len(table[0])
     if visit[x][y] == -1:
@@ -34,6 +34,8 @@ def move(table: list[list[int]], visit: list[list[int]], x: int, y: int, turn: i
         else:
             dfs_visit(table, visit, height, width, x, y)
             turn = (turn % 2) + 1
+        return True, turn
+    return False, turn
 
 
 def dfs_visit(table: list[list[int]], visit: list[list[int]], height: int, width: int, x: int, y: int) -> None:
