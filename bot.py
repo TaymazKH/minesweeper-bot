@@ -7,6 +7,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InlineQ
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, \
     filters, CallbackContext
 
+import functions
 import game
 import messages
 
@@ -59,40 +60,31 @@ async def handle_callback(update: Update, context: CallbackContext):
 
     if data['operation'] == 'start_game':
         if data['player'] == userid:
-            pass
+            await update.callback_query.answer(text=messages.CANT_PLAY_WITH_YOURSELF, show_alert=True)
         else:
-            height = data['height']
-            width = data['width']
-            mines = data['mines']
-            table, visit = game.generate_map(height, width, mines)
-            keyboard = []
-            for x in range(height):
-                row = []
-                for y in range(width):
-                    row.append(InlineKeyboardButton(
-                        '⬜',
-                        callback_data=json.dumps(
-                            {'operation': 'move', 'players': (data['player'], userid), 'turn': 1, 'table': table,
-                             'visit': visit, 'x': x, 'y': y})
-                    ))
-                keyboard.append(row)
+            table, visit = game.generate_map(data['height'], data['width'], data['mines'])
             text = messages.GAME
-            markup = InlineKeyboardMarkup(keyboard)
+            markup = functions.get_game_markup(table, visit, (data['player'], userid), 1)
+            await update.callback_query.answer()
+            await update.callback_query.message.edit_text(text, reply_markup=markup)
     elif data['operation'] == 'move':
         if data['players'][data['turn'] - 1] != userid:
-            pass
+            await update.callback_query.answer(text=messages.NOT_YOUR_TURN, show_alert=True)
         else:
             table = data['table']
             visit = data['visit']
             turn = data['turn']
-            x = data['x']
-            y = data['y']
-            changed, turn = game.move(table, visit, x, y, turn)
-            if not changed:
-                pass
+            changed, turn = game.move(table, visit, data['x'], data['y'], turn)
+            if changed:
+                text = messages.GAME
+                markup = functions.get_game_markup(table, visit, data['players'], turn)
+                await update.callback_query.answer()
+                await update.callback_query.message.edit_text(text, reply_markup=markup)
             else:
-                pass
-    await update.callback_query.answer()
+                await update.callback_query.answer(text=messages.NO_CHANGE, show_alert=True)
+    else:
+        await update.callback_query.answer()
+        await update.callback_query.message.edit_text(messages.UNKNOWN_ERROR)
 
 
 async def handle_chat(update: Update, context: CallbackContext):
