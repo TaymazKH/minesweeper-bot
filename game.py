@@ -1,7 +1,7 @@
 from random import sample
 
 
-def generate_map(height: int = 8, width: int = 8, mines: int = 21) -> tuple[list[list[int]], list[list[int]]]:
+def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]]]:
     if width > 8 or width * height > 100 or width * height < mines or mines % 2 == 0:
         raise ValueError()
     table = []

@@ -1,7 +1,9 @@
+import json
 import os
 
 from dotenv import load_dotenv
-from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, \
+    InputTextMessageContent
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, \
     filters, CallbackContext
 
@@ -14,29 +16,39 @@ async def handle_start(update: Update, context: CallbackContext):
 
 async def handle_inline(update: Update, context: CallbackContext):
     query = update.inline_query.query
-    if not query:
-        return
-    results = []
     try:
-        height, width, mines = [int(i) for i in query.split()]
+        if query:
+            height, width, mines = [int(i) for i in query.split()]
+        else:
+            height, width, mines = 8, 8, 21
         c1 = width <= 8
         c2 = width * height <= 100
         c3 = width * height >= mines
         c4 = mines % 2 == 1
         if c1 and c2 and c3 and c4:
-            pass
+            keyboard = [[InlineKeyboardButton(
+                "Let's play!",
+                callback_data=json.dumps(
+                    {'operation': 'start_game', 'player': update.inline_query.from_user.id, 'height': height,
+                     'width': width, 'mines': mines})
+            )]]
+            title = 'Start Game'
+            text = messages.LETS_PLAY
+            markup = InlineKeyboardMarkup(keyboard)
         else:
-            results = [InlineQueryResultArticle(
-                id='0',
-                title='Invalid Query',
-                input_message_content=InputTextMessageContent(messages.INVALID_INLINE_ARGS)
-            )]
+            title = 'Invalid Query'
+            text = messages.INVALID_INLINE_ARGS
+            markup = None
     except ValueError:
-        results = [InlineQueryResultArticle(
-            id='0',
-            title='Invalid Query',
-            input_message_content=InputTextMessageContent(messages.INVALID_INLINE_FORMAT)
-        )]
+        title = 'Invalid Query'
+        text = messages.INVALID_INLINE_FORMAT
+        markup = None
+    results = [InlineQueryResultArticle(
+        id='0',
+        title=title,
+        input_message_content=InputTextMessageContent(text),
+        reply_markup=markup
+    )]
     await context.bot.answer_inline_query(update.inline_query.id, results)
 
 
