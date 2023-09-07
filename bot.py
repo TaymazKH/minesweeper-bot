@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InlineQ
     InputTextMessageContent
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, \
-    filters, CallbackContext
+    filters, Defaults, CallbackContext
 
 import functions
 import game
@@ -14,7 +14,10 @@ import messages
 
 
 async def handle_start(update: Update, context: CallbackContext):
-    await context.bot.send_message(update.message.from_user.id, messages.START, parse_mode=ParseMode.HTML)
+    await context.bot.send_message(
+        update.message.from_user.id,
+        messages.START.format(bot_name=context.bot.bot.full_name, bot_username=context.bot.username)
+    )
 
 
 async def handle_inline(update: Update, context: CallbackContext):
@@ -40,11 +43,13 @@ async def handle_inline(update: Update, context: CallbackContext):
             markup = InlineKeyboardMarkup(keyboard)
         else:
             title = 'Invalid Query'
-            text = messages.INVALID_INLINE_ARGS
+            text = messages.INVALID_INLINE_ARGS.format(
+                c1='✅' if c1 else '❌', c2='✅' if c2 else '❌', c3='✅' if c3 else '❌', c4='✅' if c4 else '❌')
             markup = None
     except ValueError:
         title = 'Invalid Query'
-        text = messages.INVALID_INLINE_FORMAT
+        text = messages.INVALID_INLINE_FORMAT.format(
+            bot_name=context.bot.bot.full_name, bot_username=context.bot.username)
         markup = None
     results = [InlineQueryResultArticle(
         id='0',
@@ -95,7 +100,8 @@ async def handle_chat(update: Update, context: CallbackContext):
 def run():
     load_dotenv()
     token = os.getenv('TOKEN')
-    application = ApplicationBuilder().token(token).build()
+    defaults = Defaults(parse_mode=ParseMode.HTML)
+    application = ApplicationBuilder().token(token).defaults(defaults).build()
     application.add_handler(CommandHandler('start', handle_start))
     application.add_handler(InlineQueryHandler(handle_inline))
     application.add_handler(CallbackQueryHandler(handle_callback))
