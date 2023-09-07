@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, \
     InputTextMessageContent
+from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, \
     filters, CallbackContext
 
@@ -13,7 +14,7 @@ import messages
 
 
 async def handle_start(update: Update, context: CallbackContext):
-    pass
+    await context.bot.send_message(update.message.from_user.id, messages.START, parse_mode=ParseMode.HTML)
 
 
 async def handle_inline(update: Update, context: CallbackContext):
