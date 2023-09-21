@@ -59,7 +59,7 @@ Scores: {score1} 🔴 🔵 {score2}
 # alert
 CANT_PLAY_WITH_YOURSELF = "You can't play against yourself!"
 NOT_YOUR_TURN = "It's not your turn! Or maybe you're not a player?!"
-NO_CHANGE = "That cell is already revealed! select an unrevealed one!"
+ALREADY_REVEALED = "That cell is already revealed! select an unrevealed one!"
 
 # chat
 

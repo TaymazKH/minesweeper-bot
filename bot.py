@@ -31,13 +31,12 @@ async def handle_inline(update: Update, context: CallbackContext):
         c3 = width * height >= mines
         c4 = mines % 2 == 1
         if c1 and c2 and c3 and c4:
-            keyboard = [[InlineKeyboardButton(
-                "Let's play!",
-                callback_data=f'0 {height} {width} {mines} {update.inline_query.from_user.id}'
-            )]]
             title = 'Start Game'
             text = messages.LETS_PLAY
-            markup = InlineKeyboardMarkup(keyboard)
+            markup = InlineKeyboardMarkup.from_button(InlineKeyboardButton(
+                "Let's play!",
+                callback_data=f's {height} {width} {mines} {update.inline_query.from_user.id}'
+            ))
         else:
             title = 'Invalid Query'
             text = messages.INVALID_INLINE_ARGS.format(
@@ -58,7 +57,13 @@ async def handle_inline(update: Update, context: CallbackContext):
 
 
 async def handle_callback(update: Update, context: CallbackContext):
-    data = [int(i) for i in update.callback_query.data.split()]
+    raw_data = update.callback_query.data
+    if raw_data[0] not in ('s', 'm'):
+        await update.callback_query.answer()
+        return
+
+    data = [int(i) for i in raw_data.split()[1:]]
+    data.insert(0, {'s': 0, 'm': 1}[raw_data[0]])
     userid = update.callback_query.from_user.id
 
     if data[0] == 0:
@@ -85,7 +90,7 @@ async def handle_callback(update: Update, context: CallbackContext):
                 await update.callback_query.answer()
                 await update.callback_query.message.edit_text(text, reply_markup=markup)
             else:
-                await update.callback_query.answer(text=messages.NO_CHANGE, show_alert=True)
+                await update.callback_query.answer(text=messages.ALREADY_REVEALED, show_alert=True)
     else:
         await update.callback_query.answer()
         await update.callback_query.message.edit_text(messages.UNKNOWN_ERROR)
