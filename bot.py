@@ -1,4 +1,3 @@
-import json
 import os
 
 from dotenv import load_dotenv
@@ -31,9 +30,7 @@ async def handle_inline(update: Update, context: CallbackContext):
         if c1 and c2 and c3 and c4:
             keyboard = [[InlineKeyboardButton(
                 "Let's play!",
-                callback_data=json.dumps(
-                    {'operation': 'start_game', 'player': update.inline_query.from_user.id, 'height': height,
-                     'width': width, 'mines': mines})
+                callback_data=f'0 {height} {width} {mines} {update.inline_query.from_user.id}'
             )]]
             title = 'Start Game'
             text = messages.LETS_PLAY
@@ -56,29 +53,30 @@ async def handle_inline(update: Update, context: CallbackContext):
 
 
 async def handle_callback(update: Update, context: CallbackContext):
-    data = json.loads(update.callback_query.data)
+    data = [int(i) for i in update.callback_query.data.split()]
     userid = update.callback_query.from_user.id
 
-    if data['operation'] == 'start_game':
-        if data['player'] == userid:
+    if data[0] == 0:
+        if data[4] == userid:
             await update.callback_query.answer(text=messages.CANT_PLAY_WITH_YOURSELF, show_alert=True)
         else:
-            table, visit = game.generate_map(data['height'], data['width'], data['mines'])
+            table, visit = game.generate_map(data[1], data[2], data[3])
             text = messages.GAME
-            markup = functions.get_game_markup(table, visit, (data['player'], userid), 1)
+            markup = functions.get_game_markup(table, visit, (data[4], userid), 1)
             await update.callback_query.answer()
             await update.callback_query.message.edit_text(text, reply_markup=markup)
-    elif data['operation'] == 'move':
-        if data['players'][data['turn'] - 1] != userid:
+    elif data[0] == 1:
+        game_state = functions.get_game_state(update.message.reply_markup)
+        if game_state['players'][game_state['turn'] - 1] != userid:
             await update.callback_query.answer(text=messages.NOT_YOUR_TURN, show_alert=True)
         else:
-            table = data['table']
-            visit = data['visit']
-            turn = data['turn']
-            changed, turn = game.move(table, visit, data['x'], data['y'], turn)
+            table = game_state['table']
+            visit = game_state['visit']
+            turn = game_state['turn']
+            changed, turn = game.move(table, visit, data[1], data[2], turn)
             if changed:
                 text = messages.GAME
-                markup = functions.get_game_markup(table, visit, data['players'], turn)
+                markup = functions.get_game_markup(table, visit, game_state['players'], turn)
                 await update.callback_query.answer()
                 await update.callback_query.message.edit_text(text, reply_markup=markup)
             else:

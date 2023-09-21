@@ -10,9 +10,9 @@ def get_game_markup(table, visit, players, turn):
     for x in range(height):
         row = []
         for y in range(width):
-            if visit[x][y] == -1:
+            if visit[x][y] == 0:
                 bt = '⬜'
-            elif visit[x][y] == 0:
+            elif visit[x][y] == 3:
                 bt = str(table[x][y])
                 if bt == '0':
                     bt = ' '
@@ -20,11 +20,20 @@ def get_game_markup(table, visit, players, turn):
                 bt = '🔴'
             else:
                 bt = '🔵'
-            row.append(InlineKeyboardButton(
-                bt,
-                callback_data=json.dumps(
-                    {'operation': 'move', 'players': players, 'turn': 1, 'table': table, 'visit': visit, 'x': x,
-                     'y': y})
-            ))
+            row.append(InlineKeyboardButton(bt, callback_data=f'1 {x} {y}'))
         keyboard.append(row)
+    game_state = json.dumps({'players': players, 'turn': 1, 'table': table, 'visit': visit})
+    row = []
+    while game_state:
+        row.append(InlineKeyboardButton('-', callback_data=game_state[:64]))
+        game_state = game_state[64:]
+    keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
+
+
+def get_game_state(markup: InlineKeyboardMarkup):
+    row = markup.to_dict()['inline_keyboard'][-1]
+    s = ''
+    for button in row:
+        s += button['callback_data']
+    return json.loads(s)
