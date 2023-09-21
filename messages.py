@@ -1,13 +1,13 @@
 # start
 START = '''
-<h1>Welcome to the {bot_name} bot!</h1>
+<b>Welcome to the {bot_name} bot!</b>
 A fun and fast-paced 2 player minesweeper game
 
-<h2>Quick Start</h2>
+<b>Quick Start</b>
 Just type @{bot_username} and press the button that appears above the text area to send a match request.
 If someone presses the "play" button, they become your rival and the game begins!
 
-<h2>How to play</h2>
+<b>How to play</b>
 The game area is a rectangular map and there are mines hidden in some cells.
 Your goal is to find more mines than your rival.
 On their turn, a player chooses an unrevealed cell to open it.
@@ -16,7 +16,7 @@ But if it's not a mine, then their turn ends and a number is revealed in that ce
 Each number indicates the number of mines in the surrounding 8 cells.
 If the number of the chosen cell is 0, then all the surrounding cells are revealed as well.
 
-<h2>Custom Game</h2>
+<b>Custom Game</b>
 You can customize the size of the map and the number of mines in it.
 After typing @{bot_username}, you must enter 3 integers each separated with a space.
 Example: <code>@{bot_username} 7 6 15</code>
@@ -26,13 +26,13 @@ The default values are 8, 8 and 21.
 
 # query
 INVALID_INLINE_FORMAT = '''
-<h1>Invalid Inline Query Format</h1>
+<b>Invalid Inline Query Format</b>
 After typing @{bot_username}, you must either not type anything or enter 3 integers each separated with a space.
 Example: <code>@{bot_username}</code>
 Example: <code>@{bot_username} 7 6 15</code>
 '''
 INVALID_INLINE_ARGS = '''
-<h1>Invalid Inline Query Arguments</h1>
+<b>Invalid Inline Query Arguments</b>
 There are some constraints that apply to height, width, and the number of mines:
 {c1} width must be less than or equal to 8.
 {c2} Number of cells must be than less than or equal to 100.
