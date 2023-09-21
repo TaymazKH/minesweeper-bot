@@ -2,7 +2,7 @@ from random import sample
 
 
 def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]]]:
-    if width > 8 or width * height > 100 or width * height < mines or mines % 2 == 0:
+    if width > 8 or height > 11 or width * height > 100 or width * height < mines or mines % 2 == 0:
         raise ValueError()
     table = []
     visit = []
@@ -44,5 +44,5 @@ def dfs_visit(table: list[list[int]], visit: list[list[int]], height: int, width
     visit[x][y] = 3
     if table[x][y] == 0:
         for i in range(max(x - 1, 0), min(x + 2, height)):
-            for j in range(max(y - 1, 0), min(y + 1, width)):
+            for j in range(max(y - 1, 0), min(y + 2, width)):
                 dfs_visit(table, visit, height, width, i, j)

@@ -27,10 +27,11 @@ async def handle_inline(update: Update, context: CallbackContext):
         else:
             height, width, mines = 8, 8, 21
         c1 = width <= 8
-        c2 = width * height <= 100
-        c3 = width * height >= mines
-        c4 = mines % 2 == 1
-        if c1 and c2 and c3 and c4:
+        c2 = height <= 11
+        c3 = width * height <= 95
+        c4 = width * height >= mines
+        c5 = mines % 2 == 1
+        if c1 and c2 and c3 and c4 and c5:
             title = 'Start Game'
             text = messages.LETS_PLAY
             markup = InlineKeyboardMarkup.from_button(InlineKeyboardButton(
@@ -38,9 +39,9 @@ async def handle_inline(update: Update, context: CallbackContext):
                 callback_data=f's {height} {width} {mines} {update.inline_query.from_user.id}'
             ))
         else:
+            f = lambda c: '✅' if c else '❌'
             title = 'Invalid Query'
-            text = messages.INVALID_INLINE_ARGS.format(
-                c1='✅' if c1 else '❌', c2='✅' if c2 else '❌', c3='✅' if c3 else '❌', c4='✅' if c4 else '❌')
+            text = messages.INVALID_INLINE_ARGS.format(c1=f(c1), c2=f(c2), c3=f(c3), c4=f(c4), c5=f(c5))
             markup = None
     except ValueError:
         title = 'Invalid Query'

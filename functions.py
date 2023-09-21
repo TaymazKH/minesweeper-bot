@@ -22,12 +22,12 @@ def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tup
         keyboard.append(row)
     game_state = f'{turn} {players[0]} {players[1]} {len(table)} {len(table[0])} '
     for row in table:
-        for i in row:
-            game_state += i
+        for cell in row:
+            game_state += cell
     game_state += ' '
     for row in visit:
-        for i in row:
-            game_state += i
+        for cell in row:
+            game_state += cell
     row = []
     while game_state:
         row.append(InlineKeyboardButton('-', callback_data=game_state[:64]))

@@ -34,10 +34,11 @@ Example: <code>@{bot_username} 7 6 15</code>
 INVALID_INLINE_ARGS = '''
 <b>Invalid Inline Query Arguments</b>
 There are some constraints that apply to height, width, and the number of mines:
-{c1} width must be less than or equal to 8.
-{c2} Number of cells must be than less than or equal to 100.
-{c3} Number of mines must be than less than or equal to number of cells.
-{c4} Number of mines must be an odd number.
+{c1} Width must be less than or equal to 8.
+{c2} Height must be less than or equal to 11.
+{c3} Number of cells must be than less than or equal to 95.
+{c4} Number of mines must be than less than or equal to number of cells.
+{c5} Number of mines must be an odd number.
 '''
 
 # game
