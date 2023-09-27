@@ -26,10 +26,10 @@ async def handle_inline(update: Update, context: CallbackContext):
             height, width, mines = [int(i) for i in query.split()]
         else:
             height, width, mines = 8, 8, 21
-        c1 = width <= 8
-        c2 = height <= 11
+        c1 = 5 <= width <= 8
+        c2 = 5 <= height <= 11
         c3 = width * height <= 95
-        c4 = width * height >= mines
+        c4 = 7 <= mines <= width * height
         c5 = mines % 2 == 1
         if c1 and c2 and c3 and c4 and c5:
             title = 'Start Game'
@@ -84,8 +84,12 @@ async def handle_callback(update: Update, context: CallbackContext):
             table = game_state['table']
             visit = game_state['visit']
             turn = game_state['turn']
-            changed, turn = game.move(table, visit, data[1], data[2], turn)
-            if changed:
+            win, changed, turn = game.move(table, visit, data[1], data[2], turn)
+            if win:
+                text = messages.WIN
+                await update.callback_query.answer()
+                await update.callback_query.message.edit_text(text)
+            elif changed:
                 text = messages.GAME
                 markup = functions.get_game_markup(table, visit, game_state['players'], turn)
                 await update.callback_query.answer()
