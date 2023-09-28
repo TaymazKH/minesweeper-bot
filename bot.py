@@ -75,7 +75,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             text = messages.GAME
             markup = functions.get_game_markup(table, visit, (data[4], userid), 1)
             await update.callback_query.answer()
-            await update.callback_query.message.edit_text(text, reply_markup=markup)
+            await update.callback_query.edit_message_text(text, reply_markup=markup)
     elif data[0] == 1:
         game_state = functions.get_game_state(update.message.reply_markup)
         if game_state['players'][game_state['turn'] - 1] != userid:
@@ -88,17 +88,17 @@ async def handle_callback(update: Update, context: CallbackContext):
             if win:
                 text = messages.WIN
                 await update.callback_query.answer()
-                await update.callback_query.message.edit_text(text)
+                await update.callback_query.edit_message_text(text)
             elif changed:
                 text = messages.GAME
                 markup = functions.get_game_markup(table, visit, game_state['players'], turn)
                 await update.callback_query.answer()
-                await update.callback_query.message.edit_text(text, reply_markup=markup)
+                await update.callback_query.edit_message_text(text, reply_markup=markup)
             else:
                 await update.callback_query.answer(text=messages.ALREADY_REVEALED, show_alert=True)
     else:
         await update.callback_query.answer()
-        await update.callback_query.message.edit_text(messages.UNKNOWN_ERROR)
+        await update.callback_query.edit_message_text(messages.UNKNOWN_ERROR)
 
 
 async def handle_chat(update: Update, context: CallbackContext):
