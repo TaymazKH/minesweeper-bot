@@ -1,7 +1,7 @@
 from random import seed, randint, sample
 from threading import Lock
 
-from baseconv import BaseConverter
+from baseconv import base2, BaseConverter
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 base64 = BaseConverter('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._')
@@ -114,9 +114,9 @@ def extract_table_size(query: str) -> tuple[int, int]:
 
 
 def extract_xy(query: str) -> tuple[int, int]:
-    size = int(base64.decode(query[19]))
-    x = (size % 16) + 5
-    y = (size // 16) + 5
+    cords = int(base64.decode(query[19]))
+    x = (cords % 16) + 5
+    y = (cords // 16) + 5
     return x, y
 
 
@@ -129,4 +129,14 @@ def extract_table(query: str) -> list[list[int]]:
 
 
 def extract_visit(query: str) -> list[list[int]]:
-    pass
+    width, height = extract_table_size(query)
+    visit_str = base2.encode(base64.decode(query[28:62]))
+    visit_str = ('0' * (width * height * 2 - len(visit_str))) + visit_str
+    visit = []
+    d = {'00': 0, '01': 1, '10': 2, '11': 3}
+    for i in range(height):
+        row = []
+        for j in range(width):
+            row.append(d[visit_str[(width * i + j) * 2:(width * i + j) * 2 + 1]])
+        visit.append(row)
+    return visit
