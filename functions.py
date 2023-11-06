@@ -1,4 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from baseconv import BaseConverter
+
+base64 = BaseConverter('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._')
 
 
 def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int):
@@ -52,3 +55,26 @@ def get_game_state(markup: InlineKeyboardMarkup):
         table.append(list(table_str[x * width:(x + 1) * width]))
         visit.append(list(visit_str[x * width:(x + 1) * width]))
     return {'turn': int(li[0]), 'players': (int(li[1]), int(li[2])), 'table': table, 'visit': visit}
+
+
+# 9    9    1           1    6     34     1
+# id1  id2  turn signs  x y  seed  visit  ???
+
+def extract_user_ids(query: str) -> tuple[int, int]:
+    pass
+
+
+def extract_turn(query: str) -> int:
+    pass
+
+
+def extract_xy(query: str) -> tuple[int, int]:
+    pass
+
+
+def extract_table(query: str) -> list[list[int]]:
+    pass
+
+
+def extract_visit(query: str) -> list[list[int]]:
+    pass

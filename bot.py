@@ -36,7 +36,7 @@ async def handle_inline(update: Update, context: CallbackContext):
             text = messages.LETS_PLAY
             markup = InlineKeyboardMarkup.from_button(InlineKeyboardButton(
                 "Let's play!",
-                callback_data=f's {height} {width} {mines} {update.inline_query.from_user.id}'
+                callback_data=f'{height} {width} {mines} {update.inline_query.from_user.id}'
             ))
         else:
             f = lambda c: '✅' if c else '❌'
@@ -59,15 +59,14 @@ async def handle_inline(update: Update, context: CallbackContext):
 
 async def handle_callback(update: Update, context: CallbackContext):
     raw_data = update.callback_query.data
-    if raw_data[0] not in ('s', 'm'):
+    if len(raw_data) != 64 or ' ' not in raw_data:
         await update.callback_query.answer()
         return
 
-    data = [int(i) for i in raw_data.split()[1:]]
-    data.insert(0, {'s': 0, 'm': 1}[raw_data[0]])
     userid = update.callback_query.from_user.id
 
-    if data[0] == 0:
+    if ' ' in raw_data:
+        data = [int(i) for i in raw_data.split()]
         if data[4] == userid:
             await update.callback_query.answer(text=messages.CANT_PLAY_WITH_YOURSELF, show_alert=True)
         else:
@@ -76,22 +75,23 @@ async def handle_callback(update: Update, context: CallbackContext):
             markup = functions.get_game_markup(table, visit, (data[4], userid), 1)
             await update.callback_query.answer()
             await update.callback_query.edit_message_text(text, reply_markup=markup)
-    elif data[0] == 1:
-        game_state = functions.get_game_state(update.message.reply_markup)
-        if game_state['players'][game_state['turn'] - 1] != userid:
+    elif len(raw_data) == 64:
+        players = functions.extract_user_ids(raw_data)
+        turn = functions.extract_turn(raw_data)
+        if players[turn - 1] != userid:
             await update.callback_query.answer(text=messages.NOT_YOUR_TURN, show_alert=True)
         else:
-            table = game_state['table']
-            visit = game_state['visit']
-            turn = game_state['turn']
-            win, changed, turn = game.move(table, visit, data[1], data[2], turn)
+            table = functions.extract_table(raw_data)
+            visit = functions.extract_visit(raw_data)
+            xy = functions.extract_xy(raw_data)
+            win, changed, turn = game.move(table, visit, xy[0], xy[1], turn)
             if win:
                 text = messages.WIN
                 await update.callback_query.answer()
                 await update.callback_query.edit_message_text(text)
             elif changed:
                 text = messages.GAME
-                markup = functions.get_game_markup(table, visit, game_state['players'], turn)
+                markup = functions.get_game_markup(table, visit, players, turn)
                 await update.callback_query.answer()
                 await update.callback_query.edit_message_text(text, reply_markup=markup)
             else:
