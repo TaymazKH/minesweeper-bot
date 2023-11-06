@@ -8,9 +8,10 @@ base64 = BaseConverter('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrst
 lock = Lock()
 
 
-def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int):
+def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int, iv: int):
     height = len(table)
     width = len(table[0])
+    str1, str2 = encode_game_state(table, visit, players, turn, iv)
     keyboard = []
     for x in range(height):
         row = []
@@ -25,40 +26,9 @@ def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tup
                 bt = '🔴'
             else:
                 bt = '🔵'
-            row.append(InlineKeyboardButton(bt, callback_data=f'm {x} {y}'))
+            row.append(InlineKeyboardButton(bt, callback_data=str1 + base64.encode(16 * (y - 5) + (x - 5)) + str2))
         keyboard.append(row)
-    game_state = f'{turn} {players[0]} {players[1]} {len(table)} {len(table[0])} '
-    for row in table:
-        for cell in row:
-            game_state += str(cell)
-    game_state += ' '
-    for row in visit:
-        for cell in row:
-            game_state += str(cell)
-    row = []
-    while game_state:
-        row.append(InlineKeyboardButton('-', callback_data=game_state[:64]))
-        game_state = game_state[64:]
-    keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
-
-
-def get_game_state(markup: InlineKeyboardMarkup):
-    button_row = markup.to_dict()['inline_keyboard'][-1]
-    s = ''
-    for button in button_row:
-        s += button['callback_data']
-    li = s.split()
-    height = int(li[3])
-    width = int(li[4])
-    table_str = li[5]
-    visit_str = li[6]
-    table = []
-    visit = []
-    for x in range(height):
-        table.append(list(table_str[x * width:(x + 1) * width]))
-        visit.append(list(visit_str[x * width:(x + 1) * width]))
-    return {'turn': int(li[0]), 'players': (int(li[1]), int(li[2])), 'table': table, 'visit': visit}
 
 
 def generate_table(height: int, width: int, mines: int, iv: int | None) -> tuple[list[list[int]], int]:
@@ -88,6 +58,34 @@ def generate_table(height: int, width: int, mines: int, iv: int | None) -> tuple
 
 # 9    9    1             1   1     1      6     34
 # id1  id2  turn & signs  xy  size  mines  seed  visit
+
+def encode_game_state(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int, iv: int):
+    height = len(table)
+    width = len(table[0])
+    mines = 0
+    for row in table:
+        for e in row:
+            if e == 9:
+                mines += 1
+    sign = 0
+    if players[0] < 0:
+        sign += 2
+    if players[1] < 0:
+        sign += 1
+    if turn == 2:
+        sign += 4
+    str1 = base64.encode(abs(players[0])) + base64.encode(abs(players[1])) + str(sign)
+    iv_str = base64.encode(iv)
+    iv_str = ('0' * (6 - len(iv_str))) + iv_str
+    visit_str = ''
+    d = {0: '00', 1: '01', 2: '10', 3: '11'}
+    for row in visit:
+        for e in row:
+            visit_str += d[e]
+    str2 = base64.encode(16 * (width - 5) + (height - 5)) + base64.encode(mines) + iv_str + \
+           base64.encode(base2.decode(visit_str))
+    return str1, str2
+
 
 def extract_user_ids(query: str) -> tuple[int, int]:
     str1 = query[:9]
@@ -120,12 +118,12 @@ def extract_xy(query: str) -> tuple[int, int]:
     return x, y
 
 
-def extract_table(query: str) -> list[list[int]]:
+def extract_table(query: str) -> tuple[list[list[int]], int]:
     mines = int(base64.decode(query[21]))
     iv = int(base64.decode(query[22:28]))
     width, height = extract_table_size(query)
     table, iv = generate_table(height, width, mines, iv)
-    return table
+    return table, iv
 
 
 def extract_visit(query: str) -> list[list[int]]:

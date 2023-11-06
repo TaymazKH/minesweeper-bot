@@ -70,9 +70,9 @@ async def handle_callback(update: Update, context: CallbackContext):
         if data[4] == userid:
             await update.callback_query.answer(text=messages.CANT_PLAY_WITH_YOURSELF, show_alert=True)
         else:
-            table, visit = game.generate_map(data[1], data[2], data[3])
+            table, visit, iv = game.generate_map(data[1], data[2], data[3])
             text = messages.GAME
-            markup = functions.get_game_markup(table, visit, (data[4], userid), 1)
+            markup = functions.get_game_markup(table, visit, (data[4], userid), 1, iv)
             await update.callback_query.answer()
             await update.callback_query.edit_message_text(text, reply_markup=markup)
     elif len(raw_data) == 64:
@@ -81,7 +81,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         if players[turn - 1] != userid:
             await update.callback_query.answer(text=messages.NOT_YOUR_TURN, show_alert=True)
         else:
-            table = functions.extract_table(raw_data)
+            table, iv = functions.extract_table(raw_data)
             visit = functions.extract_visit(raw_data)
             xy = functions.extract_xy(raw_data)
             win, changed, turn = game.move(table, visit, xy[0], xy[1], turn)
@@ -91,7 +91,7 @@ async def handle_callback(update: Update, context: CallbackContext):
                 await update.callback_query.edit_message_text(text)
             elif changed:
                 text = messages.GAME
-                markup = functions.get_game_markup(table, visit, players, turn)
+                markup = functions.get_game_markup(table, visit, players, turn, iv)
                 await update.callback_query.answer()
                 await update.callback_query.edit_message_text(text, reply_markup=markup)
             else:

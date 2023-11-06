@@ -1,13 +1,13 @@
 from functions import generate_table
 
 
-def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]]]:
+def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]], int]:
     if width > 8 or width < 5 or height > 20 or height < 5 or width * height > 100 or width * height < mines or \
             mines < 7 or mines % 2 == 0:
         raise ValueError()
     table, iv = generate_table(height, width, mines, None)
     visit = [[0] * width for _ in range(height)]
-    return table, visit
+    return table, visit, iv
 
 
 def move(table: list[list[int]], visit: list[list[int]], x: int, y: int, turn: int) -> tuple[bool, bool, int]:
