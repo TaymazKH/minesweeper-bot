@@ -1,7 +1,11 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from random import seed, randint, sample
+from threading import Lock
+
 from baseconv import BaseConverter
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 base64 = BaseConverter('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz._')
+lock = Lock()
 
 
 def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int):
@@ -57,6 +61,31 @@ def get_game_state(markup: InlineKeyboardMarkup):
     return {'turn': int(li[0]), 'players': (int(li[1]), int(li[2])), 'table': table, 'visit': visit}
 
 
+def generate_table(height: int, width: int, mines: int, iv: int | None) -> tuple[list[list[int]], int]:
+    table = []
+    choices = []
+    for i in range(height):
+        table.append([0] * width)
+        for j in range(width):
+            choices.append((i, j))
+    with lock:
+        if iv is None:
+            seed()
+            iv = randint(0, 0x7FFFFFFF)
+        seed(iv)
+        choices = sample(choices, mines)
+    for cell in choices:
+        x = cell[0]
+        y = cell[1]
+        if table[x][y] != 9:
+            table[x][y] = 9
+            for i in range(max(x - 1, 0), min(x + 2, height)):
+                for j in range(max(y - 1, 0), min(y + 1, width)):
+                    if table[i][j] != 9:
+                        table[i][j] += 1
+    return table, iv
+
+
 # 9    9    1             1   1     1      6     34
 # id1  id2  turn & signs  xy  size  mines  seed  visit
 
@@ -78,15 +107,25 @@ def extract_turn(query: str) -> int:
 
 
 def extract_table_size(query: str) -> tuple[int, int]:
-    pass
+    size = int(base64.decode(query[20]))
+    width = (size // 16) + 5
+    height = (size % 16) + 5
+    return width, height
 
 
 def extract_xy(query: str) -> tuple[int, int]:
-    pass
+    size = int(base64.decode(query[19]))
+    x = (size % 16) + 5
+    y = (size // 16) + 5
+    return x, y
 
 
 def extract_table(query: str) -> list[list[int]]:
-    pass
+    mines = int(base64.decode(query[21]))
+    iv = int(base64.decode(query[22:28]))
+    width, height = extract_table_size(query)
+    table, iv = generate_table(height, width, mines, iv)
+    return table
 
 
 def extract_visit(query: str) -> list[list[int]]:

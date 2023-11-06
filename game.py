@@ -1,28 +1,12 @@
-from random import sample
+from functions import generate_table
 
 
 def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]]]:
-    if width > 8 or width < 5 or height > 20 or height < 5 or width * height > 100 or width * height < mines or\
+    if width > 8 or width < 5 or height > 20 or height < 5 or width * height > 100 or width * height < mines or \
             mines < 7 or mines % 2 == 0:
         raise ValueError()
-    table = []
-    visit = []
-    choices = []
-    for i in range(height):
-        table.append([0] * width)
-        visit.append([0] * width)
-        for j in range(width):
-            choices.append((i, j))
-    choices = sample(choices, mines)
-    for cell in choices:
-        x = cell[0]
-        y = cell[1]
-        if table[x][y] != 9:
-            table[x][y] = 9
-            for i in range(max(x - 1, 0), min(x + 2, height)):
-                for j in range(max(y - 1, 0), min(y + 1, width)):
-                    if table[i][j] != 9:
-                        table[i][j] += 1
+    table, iv = generate_table(height, width, mines, None)
+    visit = [[0] * width for _ in range(height)]
     return table, visit
 
 
