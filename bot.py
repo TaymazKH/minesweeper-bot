@@ -59,7 +59,7 @@ async def handle_inline(update: Update, context: CallbackContext):
 
 async def handle_callback(update: Update, context: CallbackContext):
     raw_data = update.callback_query.data
-    if len(raw_data) != 64 or ' ' not in raw_data:
+    if len(raw_data) != 63 and ' ' not in raw_data:
         await update.callback_query.answer()
         return
 
@@ -67,15 +67,15 @@ async def handle_callback(update: Update, context: CallbackContext):
 
     if ' ' in raw_data:
         data = [int(i) for i in raw_data.split()]
-        if data[4] == userid:
+        if data[3] == userid:
             await update.callback_query.answer(text=messages.CANT_PLAY_WITH_YOURSELF, show_alert=True)
         else:
-            table, visit, iv = game.generate_map(data[1], data[2], data[3])
+            table, visit, iv = game.generate_map(data[0], data[1], data[2])
             text = messages.GAME
-            markup = functions.get_game_markup(table, visit, (data[4], userid), 1, iv)
+            markup = functions.get_game_markup(table, visit, (data[3], userid), 1, iv)
             await update.callback_query.answer()
             await update.callback_query.edit_message_text(text, reply_markup=markup)
-    elif len(raw_data) == 64:
+    elif len(raw_data) == 63:
         players = functions.extract_user_ids(raw_data)
         turn = functions.extract_turn(raw_data)
         if players[turn - 1] != userid:

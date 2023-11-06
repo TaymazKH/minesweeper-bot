@@ -11,7 +11,7 @@ lock = Lock()
 def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int, iv: int):
     height = len(table)
     width = len(table[0])
-    str1, str2 = encode_game_state(table, visit, players, turn, iv)
+    game_state = encode_game_state(table, visit, players, turn, iv)
     keyboard = []
     for x in range(height):
         row = []
@@ -26,7 +26,7 @@ def get_game_markup(table: list[list[int]], visit: list[list[int]], players: tup
                 bt = '🔴'
             else:
                 bt = '🔵'
-            row.append(InlineKeyboardButton(bt, callback_data=str1 + base64.encode(16 * (y - 5) + (x - 5)) + str2))
+            row.append(InlineKeyboardButton(bt, callback_data=game_state + base64.encode(x) + base64.encode(y)))
         keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
 
@@ -47,17 +47,16 @@ def generate_table(height: int, width: int, mines: int, iv: int | None) -> tuple
     for cell in choices:
         x = cell[0]
         y = cell[1]
-        if table[x][y] != 9:
-            table[x][y] = 9
-            for i in range(max(x - 1, 0), min(x + 2, height)):
-                for j in range(max(y - 1, 0), min(y + 1, width)):
-                    if table[i][j] != 9:
-                        table[i][j] += 1
+        table[x][y] = 9
+        for i in range(max(x - 1, 0), min(x + 2, height)):
+            for j in range(max(y - 1, 0), min(y + 2, width)):
+                if table[i][j] != 9:
+                    table[i][j] += 1
     return table, iv
 
 
-# 9    9    1             1   1     1      6     34
-# id1  id2  turn & signs  xy  size  mines  seed  visit
+# 9    9    1             1     1      6     34     2
+# id1  id2  turn & signs  size  mines  seed  visit  xy
 
 def encode_game_state(table: list[list[int]], visit: list[list[int]], players: tuple[int, int], turn: int, iv: int):
     height = len(table)
@@ -74,17 +73,14 @@ def encode_game_state(table: list[list[int]], visit: list[list[int]], players: t
         sign += 1
     if turn == 2:
         sign += 4
-    str1 = base64.encode(abs(players[0])) + base64.encode(abs(players[1])) + str(sign)
-    iv_str = base64.encode(iv)
-    iv_str = ('0' * (6 - len(iv_str))) + iv_str
     visit_str = ''
     d = {0: '00', 1: '01', 2: '10', 3: '11'}
     for row in visit:
         for e in row:
             visit_str += d[e]
-    str2 = base64.encode(16 * (width - 5) + (height - 5)) + base64.encode(mines) + iv_str + \
-           base64.encode(base2.decode(visit_str))
-    return str1, str2
+    return extend_string(base64.encode(abs(players[0])), 9) + extend_string(base64.encode(abs(players[1])), 9) + \
+           str(sign) + base64.encode(16 * (width - 5) + (height - 5)) + base64.encode(mines) + \
+           extend_string(base64.encode(iv), 6) + extend_string(base64.encode(base2.decode(visit_str)), 34)
 
 
 def extract_user_ids(query: str) -> tuple[int, int]:
@@ -101,26 +97,25 @@ def extract_user_ids(query: str) -> tuple[int, int]:
 
 
 def extract_turn(query: str) -> int:
-    return 1 if int(query[18]) < 5 else 2
+    return 1 if int(query[18]) < 4 else 2
 
 
 def extract_table_size(query: str) -> tuple[int, int]:
-    size = int(base64.decode(query[20]))
+    size = int(base64.decode(query[19]))
     width = (size // 16) + 5
     height = (size % 16) + 5
     return width, height
 
 
 def extract_xy(query: str) -> tuple[int, int]:
-    cords = int(base64.decode(query[19]))
-    x = (cords % 16) + 5
-    y = (cords // 16) + 5
+    x = int(base64.decode(query[61]))
+    y = int(base64.decode(query[62]))
     return x, y
 
 
 def extract_table(query: str) -> tuple[list[list[int]], int]:
-    mines = int(base64.decode(query[21]))
-    iv = int(base64.decode(query[22:28]))
+    mines = int(base64.decode(query[20]))
+    iv = int(base64.decode(query[21:27]))
     width, height = extract_table_size(query)
     table, iv = generate_table(height, width, mines, iv)
     return table, iv
@@ -128,13 +123,16 @@ def extract_table(query: str) -> tuple[list[list[int]], int]:
 
 def extract_visit(query: str) -> list[list[int]]:
     width, height = extract_table_size(query)
-    visit_str = base2.encode(base64.decode(query[28:62]))
-    visit_str = ('0' * (width * height * 2 - len(visit_str))) + visit_str
+    visit_str = extend_string(base2.encode(base64.decode(query[27:61])), width * height * 2)
     visit = []
     d = {'00': 0, '01': 1, '10': 2, '11': 3}
     for i in range(height):
         row = []
         for j in range(width):
-            row.append(d[visit_str[(width * i + j) * 2:(width * i + j) * 2 + 1]])
+            row.append(d[visit_str[(width * i + j) * 2:(width * i + j) * 2 + 2]])
         visit.append(row)
     return visit
+
+
+def extend_string(s: str, l: int) -> str:
+    return ('0' * (l - len(s))) + s
