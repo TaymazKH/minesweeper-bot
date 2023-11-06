@@ -35,8 +35,8 @@ INVALID_INLINE_ARGS = '''
 <b>Invalid Inline Query Arguments</b>
 There are some constraints that apply to height, width, and the number of mines:
 {c1} 5 <= Width <= 8.
-{c2} 5 <= Height <= 11.
-{c3} Number of cells <= 95.
+{c2} 5 <= Height <= 20.
+{c3} Number of cells <= 100.
 {c4} 7 <= Number of mines <= number of cells.
 {c5} Number of mines must be an odd number.
 '''

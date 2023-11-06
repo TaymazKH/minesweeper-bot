@@ -2,7 +2,7 @@ from random import sample
 
 
 def generate_map(height: int, width: int, mines: int) -> tuple[list[list[int]], list[list[int]]]:
-    if width > 8 or width < 5 or height > 11 or height < 5 or width * height > 95 or width * height < mines or\
+    if width > 8 or width < 5 or height > 20 or height < 5 or width * height > 100 or width * height < mines or\
             mines < 7 or mines % 2 == 0:
         raise ValueError()
     table = []

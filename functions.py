@@ -57,14 +57,27 @@ def get_game_state(markup: InlineKeyboardMarkup):
     return {'turn': int(li[0]), 'players': (int(li[1]), int(li[2])), 'table': table, 'visit': visit}
 
 
-# 9    9    1           1    6     34     1
-# id1  id2  turn signs  x y  seed  visit  ???
+# 9    9    1             1   1     1      6     34
+# id1  id2  turn & signs  xy  size  mines  seed  visit
 
 def extract_user_ids(query: str) -> tuple[int, int]:
-    pass
+    str1 = query[:9]
+    str2 = query[9:18]
+    signs = int(query[18])
+    id1 = int(base64.decode(str1))
+    id2 = int(base64.decode(str2))
+    if signs % 4 > 1:
+        id1 *= -1
+    if signs % 2 == 1:
+        id2 *= -1
+    return id1, id2
 
 
 def extract_turn(query: str) -> int:
+    return 1 if int(query[18]) < 5 else 2
+
+
+def extract_table_size(query: str) -> tuple[int, int]:
     pass
 
 

@@ -27,8 +27,8 @@ async def handle_inline(update: Update, context: CallbackContext):
         else:
             height, width, mines = 8, 8, 21
         c1 = 5 <= width <= 8
-        c2 = 5 <= height <= 11
-        c3 = width * height <= 95
+        c2 = 5 <= height <= 20
+        c3 = width * height <= 100
         c4 = 7 <= mines <= width * height
         c5 = mines % 2 == 1
         if c1 and c2 and c3 and c4 and c5:

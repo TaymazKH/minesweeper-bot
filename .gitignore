@@ -4,6 +4,9 @@ venv/
 .vscode/
 .env
 
+# Experiments
+ignored/
+
 # Byte-compiled
 __pycache__/
 
